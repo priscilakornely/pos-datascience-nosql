@@ -51,7 +51,9 @@ namespace Redinsgo
 
                     for (var i = 1; i <= numeroUsuarios; i++)
                     {
-                        var possuiNumero = db.SetContains($"cartela:{i}", numeroSorteado);
+                        var cartela = db.HashValues($"user:{i}")[1].ToString();
+
+                        var possuiNumero = db.SetContains(cartela, numeroSorteado);
 
                         if (possuiNumero)
                         {

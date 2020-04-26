@@ -390,7 +390,7 @@ db.stocks.find({profit: {$exists: true}}, {_id: 0, Company: 1, profit: 1})
 ...
 ```
 
-**8. Analise as ações. É uma bola de cristal na sua mão... Quais as três ações você investiria? **
+**8. Analise as ações. É uma bola de cristal na sua mão... Quais as três ações você investiria?**
 ```
 db.stocks.find({}, {_id: 0, "Performance (Month)": 1, Company:1}).sort({"Performance (Month)": -1}).limit(3)
 ```
@@ -400,7 +400,7 @@ db.stocks.find({}, {_id: 0, "Performance (Month)": 1, Company:1}).sort({"Perform
 { "Company" : "Champion Industries Inc.", "Performance (Month)" : 1.3913 }
 ```
 
-**9. Liste as ações agrupadas por setor **
+**9. Liste as ações agrupadas por setor**
 ```
 db.stocks.aggregate([{$group: {_id: "$Sector", stocks: {$addToSet: "$Ticker"}}}])
 ```

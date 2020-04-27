@@ -14,56 +14,59 @@ namespace Redinsgo
 
             var numeroUsuarios = 50;
 
-            db.SetAdd("cartelas", db.SetAdd("cartelas", Enumerable.Range(1, 99).Select(x => (RedisValue)x).ToArray()));
-
-            for (var i = 1; i <= numeroUsuarios; i++)
+            for (var r = 0; r < 10; r++)
             {
-                db.HashSet($"user:{i}", new HashEntry[]
+                db.SetAdd("cartelas", db.SetAdd("cartelas", Enumerable.Range(1, 99).Select(x => (RedisValue)x).ToArray()));
+
+                for (var i = 1; i <= numeroUsuarios; i++)
                 {
+                    db.HashSet($"user:{i}", new HashEntry[]
+                    {
                     new HashEntry("name", $"user{i}"),
                     new HashEntry("bcartela", $"cartela:{i}"),
                     new HashEntry("bscore", 0)
-                });
+                    });
 
-                var numerosCartela = db.SetRandomMembers("cartelas", 15).Distinct().ToList();
+                    var numerosCartela = db.SetRandomMembers("cartelas", 15).Distinct().ToList();
 
-                while (numerosCartela.Count < 15)
-                {
-                    var numero = db.SetRandomMember("cartelas");
+                    while (numerosCartela.Count < 15)
+                    {
+                        var numero = db.SetRandomMember("cartelas");
 
-                    if (!numerosCartela.Any(n => n == numero))
-                        numerosCartela.Add(numero);
+                        if (!numerosCartela.Any(n => n == numero))
+                            numerosCartela.Add(numero);
+                    }
+
+                    db.SetAdd($"cartela:{i}", numerosCartela.ToArray());
                 }
 
-                db.SetAdd($"cartela:{i}", numerosCartela.ToArray());
-            }
+                var venceu = false;
+                var numerosSorteados = new List<short>();
 
-            var venceu = false;
-            var numerosSorteados = new List<short>();
-
-            while (!venceu)
-            {
-                var numeroSorteado = db.SetRandomMember("cartelas");
-
-                if (!numerosSorteados.Any(n => n == numeroSorteado))
+                while (!venceu)
                 {
-                    numerosSorteados.Add((short)numeroSorteado);
+                    var numeroSorteado = db.SetRandomMember("cartelas");
 
-                    for (var i = 1; i <= numeroUsuarios; i++)
+                    if (!numerosSorteados.Any(n => n == numeroSorteado))
                     {
-                        var cartela = db.HashValues($"user:{i}")[1].ToString();
+                        numerosSorteados.Add((short)numeroSorteado);
 
-                        var possuiNumero = db.SetContains(cartela, numeroSorteado);
-
-                        if (possuiNumero)
+                        for (var i = 1; i <= numeroUsuarios; i++)
                         {
-                            var total = db.HashIncrement($"user:{i}", "bscore", 1);
-                            
-                            if (total == 15)
+                            var cartela = db.HashValues($"user:{i}")[1].ToString();
+
+                            var possuiNumero = db.SetContains(cartela, numeroSorteado);
+
+                            if (possuiNumero)
                             {
-                                venceu = true;
-                                Console.WriteLine($"user:{i} venceu!");
-                                break;
+                                var total = db.HashIncrement($"user:{i}", "bscore", 1);
+
+                                if (total == 15)
+                                {
+                                    venceu = true;
+                                    Console.WriteLine($"user:{i} venceu!");
+                                    break;
+                                }
                             }
                         }
                     }

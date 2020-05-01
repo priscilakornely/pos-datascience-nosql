@@ -5,7 +5,7 @@
 - Visual Studio
 
 **Execução**
-Importar o projeto e executar no visual studio
+- Importar o projeto e executar no visual studio
 
 **Resultado**
 ```

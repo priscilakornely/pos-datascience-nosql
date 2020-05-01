@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Redinsgo
 {
@@ -14,64 +15,66 @@ namespace Redinsgo
 
             var numeroUsuarios = 50;
 
-            for (var r = 0; r < 10; r++)
-            {
-                db.SetAdd("cartelas", db.SetAdd("cartelas", Enumerable.Range(1, 99).Select(x => (RedisValue)x).ToArray()));
+            db.SetAdd("cartelas", db.SetAdd("cartelas", Enumerable.Range(1, 99).Select(x => (RedisValue)x).ToArray()));
 
-                for (var i = 1; i <= numeroUsuarios; i++)
+            for (var i = 1; i <= numeroUsuarios; i++)
+            {
+                db.HashSet($"user:{i}", new HashEntry[]
                 {
-                    db.HashSet($"user:{i}", new HashEntry[]
-                    {
                     new HashEntry("name", $"user{i}"),
                     new HashEntry("bcartela", $"cartela:{i}"),
                     new HashEntry("bscore", 0)
-                    });
+                });
 
-                    var numerosCartela = db.SetRandomMembers("cartelas", 15).Distinct().ToList();
+                var numerosCartela = db.SetRandomMembers("cartelas", 15).Distinct().ToList();
 
-                    while (numerosCartela.Count < 15)
-                    {
-                        var numero = db.SetRandomMember("cartelas");
+                while (numerosCartela.Count < 15)
+                {
+                    var numero = db.SetRandomMember("cartelas");
 
-                        if (!numerosCartela.Any(n => n == numero))
-                            numerosCartela.Add(numero);
-                    }
-
-                    db.SetAdd($"cartela:{i}", numerosCartela.ToArray());
+                    if (!numerosCartela.Any(n => n == numero))
+                        numerosCartela.Add(numero);
                 }
 
-                var venceu = false;
-                var numerosSorteados = new List<short>();
+                db.SetAdd($"cartela:{i}", numerosCartela.ToArray());
+                Console.WriteLine($"user:{i} cartela:{i} {string.Join(",", db.SetMembers($"cartela:{i}"))}");
+            }
 
-                while (!venceu)
+            var venceu = false;
+            var numerosSorteados = new List<short>();
+            var vencedores = new StringBuilder();
+
+            while (!venceu)
+            {
+                var numeroSorteado = db.SetRandomMember("cartelas");
+
+                if (!numerosSorteados.Any(n => n == numeroSorteado))
                 {
-                    var numeroSorteado = db.SetRandomMember("cartelas");
+                    Console.WriteLine($"*** Número Sorteado: {numeroSorteado} ***");
+                    numerosSorteados.Add((short)numeroSorteado);
 
-                    if (!numerosSorteados.Any(n => n == numeroSorteado))
+                    for (var i = 1; i <= numeroUsuarios; i++)
                     {
-                        numerosSorteados.Add((short)numeroSorteado);
+                        var cartela = db.HashValues($"user:{i}")[1].ToString();
 
-                        for (var i = 1; i <= numeroUsuarios; i++)
+                        var possuiNumero = db.SetContains(cartela, numeroSorteado);
+
+                        if (possuiNumero)
                         {
-                            var cartela = db.HashValues($"user:{i}")[1].ToString();
+                            var total = db.HashIncrement($"user:{i}", "bscore", 1);
+                            Console.WriteLine($"user:{i} - score: {db.HashGet($"user:{i}", "bscore")}");
 
-                            var possuiNumero = db.SetContains(cartela, numeroSorteado);
-
-                            if (possuiNumero)
+                            if (total == 15)
                             {
-                                var total = db.HashIncrement($"user:{i}", "bscore", 1);
-
-                                if (total == 15)
-                                {
-                                    venceu = true;
-                                    Console.WriteLine($"user:{i} venceu!");
-                                    break;
-                                }
+                                vencedores.AppendLine($"user:{i} venceu!");
+                                venceu = true;
                             }
                         }
                     }
                 }
             }
+
+            Console.WriteLine(vencedores);
         }
     }
 }

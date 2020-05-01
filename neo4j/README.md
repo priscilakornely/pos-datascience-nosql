@@ -34,8 +34,7 @@ RETURN m
 ```
 
 **2.2: View the retrieved results as a table**
-```
-```
+![exercicio 2.2](https://github.com/priscilakornely/pos-datascience-nosql/blob/master/neo4j/Img/Exercicio2.2.png)
 
 **Exercise 2.3: Query the database for all property keys**
 ```
@@ -415,6 +414,7 @@ REMOVE p:Female
 ```
 CALL db.schema.visualization()
 ```
+![exercicio 2.2](https://github.com/priscilakornely/pos-datascience-nosql/blob/master/neo4j/Img/Exercicio8.10.png)
 
 **8.11: Add properties to a movie**
 ```
@@ -531,6 +531,7 @@ call db.propertyKeys
 ```
 CALL db.schema.visualization()
 ```
+![exercicio 2.2](https://github.com/priscilakornely/pos-datascience-nosql/blob/master/neo4j/Img/Exercicio9.8.png)
 
 **9.9: Retrieve the names and roles for actors**
 ```
